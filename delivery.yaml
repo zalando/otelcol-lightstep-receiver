@@ -1,0 +1,50 @@
+version: "2017-09-20"
+
+pipeline:
+  - id: build
+    type: script
+    vm_config:
+      type: linux
+      image: "cdp-runtime/go"
+    cache:
+      paths:
+        - /go/pkg/mod
+        - ~/.cache/go-build
+    commands:
+      - desc: check
+        cmd: |
+          make check
+      - desc: build
+        cmd: |
+          make build
+
+  - id: release-alpha
+    type: script
+    vm_config:
+      type: linux
+      image: "cdp-runtime/go"
+    when:
+      event: pull_request
+    env:
+      GIT_TAG: "v0.0.#{CDP_PULL_REQUEST_NUMBER}-#{CDP_PULL_REQUEST_COUNTER}"
+    commands:
+      - desc: release
+        cmd: |
+          git gh-tag $GIT_TAG
+          git gh-release -m "Otelcol Lightstep Receiver Alpha ($GIT_TAG)" $GIT_TAG
+
+  - id: release
+    type: script
+    vm_config:
+      type: linux
+      image: "cdp-runtime/go"
+    when:
+      branch: main
+      event: push
+    env:
+      GIT_TAG: "v0.0.#{CDP_TARGET_BRANCH_COUNTER}"
+    commands:
+      - desc: release
+        cmd: |
+          git gh-tag $GIT_TAG
+          git gh-release -m "Otelcol Lightstep Receiver ($GIT_TAG)" $GIT_TAG

@@ -1,0 +1,4 @@
+issues:
+  exclude-dirs:
+    - internal/lightstep_thrift/collectorthrift
+    - internal/lightstep_thrift/thrift_0_9_2

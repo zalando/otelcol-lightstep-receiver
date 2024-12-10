@@ -1,0 +1,63 @@
+receivers:
+  lightstepreceiver:
+    protocols:
+      pbgrpc:
+        endpoint: "0.0.0.0:4317"
+      pbhttp:
+        endpoint: "0.0.0.0:4327"
+      thrift:
+        endpoint: "0.0.0.0:4417"
+
+processors:
+  batch:
+    metadata_keys:
+      - lightstep-access-token
+  transform:
+    trace_statements:
+      - context: resource
+        statements:
+          - set(attributes["otelcol"], "tracing")
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: ingest.lightstep.com:443
+    auth:
+      authenticator: headers_setter
+
+extensions:
+  headers_setter:
+    headers:
+      - action: insert
+        key: lightstep-access-token
+        from_context: "lightstep-access-token"
+
+service:
+  extensions: [ headers_setter ]
+  telemetry:
+    resource:
+      service.name: "tracing/otelcol-staging"
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
+    traces:
+      propagators:
+        - tracecontext
+        - b3
+      processors:
+        - batch:
+            exporter:
+              otlp:
+                endpoint: ingest.lightstep.com:443
+                protocol: grpc/protobuf
+                compression: gzip
+                headers:
+                  "lightstep-access-token": "${env:LIGHTSTEP_ACCESS_TOKEN}"
+    logs:
+      level: "debug"
+  pipelines:
+    traces:
+      receivers: [lightstepreceiver]
+      processors: [transform, batch]
+      exporters: [debug]

@@ -1,0 +1,7 @@
+type: lightstepreceiver
+
+status:
+  class: receiver
+  stability:
+    stable:
+      - traces
