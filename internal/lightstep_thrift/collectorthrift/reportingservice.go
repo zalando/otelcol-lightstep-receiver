@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
 )
 
 // (needed to ensure safety because of naive import list construction.)

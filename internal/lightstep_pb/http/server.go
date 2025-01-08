@@ -18,10 +18,10 @@ import (
 	"net"
 	"net/http"
 
-	lightstepCommon "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_common"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 const (
