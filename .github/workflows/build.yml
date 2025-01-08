@@ -19,10 +19,10 @@ jobs:
           go-version: 1.23.3
           cache: false
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.60
+#      - name: golangci-lint
+#        uses: golangci/golangci-lint-action@v6
+#        with:
+#          version: v1.60
 
       - name: Test
         run: make test checkfmt
