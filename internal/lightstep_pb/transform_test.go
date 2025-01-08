@@ -12,9 +12,9 @@ import (
 	"go.uber.org/zap"
 	"testing"
 
-	lightstepCommon "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_common"
-	pb "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
+	pb "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 func initTelemetry() *telemetry.Telemetry {

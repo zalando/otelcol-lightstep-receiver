@@ -1,4 +1,4 @@
-module github.bus.zalan.do/logging/otelcol-lightstep-receiver
+module github.com/zalando/otelcol-lightstep-receiver
 
 go 1.22.7
 

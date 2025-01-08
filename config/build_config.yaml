@@ -6,7 +6,7 @@ dist:
 #  debug_compilation: true
 
 receivers:
-  - gomod: github.bus.zalan.do/logging/otelcol-lightstep-receiver v1.0.0
+  - gomod: github.com/zalando/otelcol-lightstep-receiver v1.0.0
     name: lightstepreceiver
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.113.0
 
@@ -27,5 +27,6 @@ extensions:
   - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.113.0
 
 replaces:
-  - github.bus.zalan.do/logging/otelcol-lightstep-receiver => ../../../lightstepreceiver
+  - github.com/zalando/otelcol-lightstep-receiver => ../../../otelcol-lightstep-receiver
   - go.opentelemetry.io/collector/pdata => go.opentelemetry.io/collector/pdata v1.20.0
+  - go.opentelemetry.io/collector/component => go.opentelemetry.io/collector/component v0.113.0

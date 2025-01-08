@@ -5,7 +5,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"testing"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 func initTr() *Request {

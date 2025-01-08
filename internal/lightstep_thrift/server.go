@@ -22,10 +22,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 const transport = "thrift"

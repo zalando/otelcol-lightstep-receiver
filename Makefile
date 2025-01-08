@@ -48,7 +48,7 @@ coverage:
 	which cdp-upload-test-results && cdp-upload-test-results --type html "$(COVERAGE_DIR)" || true
 
 build: $(SOURCES)
-	GOPRIVATE=github.bus.zalan.do CGO_ENABLED=0 go build $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" $(CMD)
+	CGO_ENABLED=0 go build $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" $(CMD)
 
 godoc:
 	go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest

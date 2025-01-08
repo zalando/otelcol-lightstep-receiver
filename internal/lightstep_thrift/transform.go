@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	lightstepCommon "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_common"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 type Request struct {

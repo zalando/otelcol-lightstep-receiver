@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 	"time"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 // ThriftServerReportRequest defines thrift report request with http context
