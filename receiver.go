@@ -143,3 +143,7 @@ func newLightstepReceiver(cfg *Config, set *receiver.Settings, nextTraces consum
 
 	return r, nil
 }
+
+func Version() string {
+	return receiverVersion
+}
