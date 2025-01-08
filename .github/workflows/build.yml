@@ -1,4 +1,4 @@
-name: Otelcol Lightstep Receiver build
+name: Lightstep Receiver build
 
 on:
   push:
@@ -17,10 +17,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: 1.23.3
-          cahce: false
+          cache: false
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
 
       - name: Test
-        run: make check
+        run: make test checkfmt
 
       - name: Build
         run: make build
