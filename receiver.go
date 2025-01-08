@@ -10,11 +10,11 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb/grpc"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb/http"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_thrift"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/metadata"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/grpc"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/http"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/metadata"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
 
 type lightstepReceiver struct {

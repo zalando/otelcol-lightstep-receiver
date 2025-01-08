@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/metadata"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/metadata"
 )
 
 const (

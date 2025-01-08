@@ -7,10 +7,10 @@ import (
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"sync"
 
-	lightstepCommon "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_common"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb"
-	pb "github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
-	"github.bus.zalan.do/logging/otelcol-lightstep-receiver/internal/telemetry"
+	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
+	pb "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
+	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 
 	"go.opentelemetry.io/collector/client"
 	"go.opentelemetry.io/collector/component"
