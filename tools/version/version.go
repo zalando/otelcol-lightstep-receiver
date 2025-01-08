@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	lightstepreceiver "github.bus.zalan.do/logging/otelcol-lightstep-receiver"
+	lightstepreceiver "github.com/zalando/otelcol-lightstep-receiver"
 )
 
 func main() {
