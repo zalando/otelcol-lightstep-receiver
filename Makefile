@@ -19,6 +19,7 @@ clean:
 	rm -rf otel
 	rm -rf build
 	rm -rf ocb
+	rm -rf coverage
 
 
 check: test lint checkfmt coverage
