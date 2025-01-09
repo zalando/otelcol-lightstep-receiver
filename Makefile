@@ -14,6 +14,8 @@ VERSION ?= 0.113.0
 
 default: all
 
+all: clean check build
+
 clean:
 	rm -rf otel
 	rm -rf build
