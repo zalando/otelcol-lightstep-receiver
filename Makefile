@@ -7,7 +7,6 @@ TESTS   = $(shell go list ./... | grep -v e2e | grep -v "thrift_0_9_2")
 COVERAGE_DIR ?= $(PWD)/coverage
 
 export GO111MODULE = on
-export GOPRIVATE = github.bus.zalan.do/*
 
 DEF_BUILDER = ./ocb
 BUILDER ?= $(DEF_BUILDER)
