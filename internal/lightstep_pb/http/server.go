@@ -17,6 +17,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
@@ -37,6 +38,8 @@ type ServerHTTP struct {
 
 	nextTraces consumer.Traces
 	telemetry  *telemetry.Telemetry
+
+	shutdownWG sync.WaitGroup
 }
 
 func NewServer(
@@ -64,7 +67,7 @@ func (s *ServerHTTP) Start(ctx context.Context, host component.Host) error {
 
 	ln, err = s.config.ToListener(ctx)
 	if err != nil {
-		return fmt.Errorf("can't init thrift server: %s", err)
+		return fmt.Errorf("can't init http pb server: %s", err)
 	}
 
 	rt := mux.NewRouter()
@@ -72,10 +75,13 @@ func (s *ServerHTTP) Start(ctx context.Context, host component.Host) error {
 
 	s.server, err = s.config.ToServer(ctx, host, s.settings.TelemetrySettings, rt)
 	if err != nil {
-		return fmt.Errorf("can't start thrift http server %s", err)
+		return fmt.Errorf("can't start http pb server %s", err)
 	}
 
+	s.shutdownWG.Add(1)
 	go func() {
+		defer s.shutdownWG.Done()
+
 		if errHTTP := s.server.Serve(ln); !errors.Is(errHTTP, http.ErrServerClosed) && errHTTP != nil {
 			componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(errHTTP))
 		}
@@ -94,6 +100,7 @@ func (s *ServerHTTP) Shutdown(ctx context.Context) {
 		if err != nil {
 			s.telemetry.Logger.Error("failed to stop http pb server", zap.Error(err))
 		}
+		s.shutdownWG.Wait()
 	}
 }
 
