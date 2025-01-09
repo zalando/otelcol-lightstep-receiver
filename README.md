@@ -2,6 +2,7 @@
 
 The `lightstepreceiver` receives OpenTracing traces from Lightstep tracers in various supported formats converting them into OpenTelemetry'a `ptrace.Traces` propagating it further in pipelines
 
+
 ![arch](./otelcol-lightstep-receiver.png)
 ### Supported formats and endpoints
 - `/_rpc/v1/reports/binary` - Thrift binary over http, reported by [lightstep-tracer-python](https://github.com/lightstep/lightstep-tracer-python)
