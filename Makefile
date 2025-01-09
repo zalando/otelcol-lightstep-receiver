@@ -7,13 +7,14 @@ TESTS   = $(shell go list ./... | grep -v e2e | grep -v "thrift_0_9_2")
 COVERAGE_DIR ?= $(PWD)/coverage
 
 export GO111MODULE = on
-export GOPRIVATE = github.bus.zalan.do/*
 
 DEF_BUILDER = ./ocb
 BUILDER ?= $(DEF_BUILDER)
 VERSION ?= 0.113.0
 
 default: all
+
+all: clean check build
 
 clean:
 	rm -rf otel
@@ -43,9 +44,6 @@ coverage:
 	go tool cover -func=$(COVERAGE_DIR)/coverage.out
 	go tool cover -func=$(COVERAGE_DIR)/count.out
 	go tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/index.html
-
-	# Reference: https://cloud.docs.zalando.net/concepts/builds/#test-results
-	which cdp-upload-test-results && cdp-upload-test-results --type html "$(COVERAGE_DIR)" || true
 
 build: $(SOURCES)
 	CGO_ENABLED=0 go build $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" $(CMD)
