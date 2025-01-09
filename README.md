@@ -1,3 +1,6 @@
+[![Build Status](https://github.com/zalando/otelcol-lightstep-receiver/actions/workflows/build.yml/badge.svg)](https://github.com/zalando/otelcol-lightstep-receiver/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ## OpenTelemetry Collector Lightstep Receiver
 
 The `lightstepreceiver` receives OpenTracing traces from Lightstep tracers in various supported formats converting them into OpenTelemetry'a `ptrace.Traces` propagating it further in pipelines
