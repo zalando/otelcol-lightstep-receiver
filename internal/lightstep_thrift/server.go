@@ -21,6 +21,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"sync"
 
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
 
@@ -40,6 +41,8 @@ type ThriftServer struct {
 
 	nextTraces consumer.Traces
 	telemetry  *telemetry.Telemetry
+
+	shutdownWG sync.WaitGroup
 }
 
 func NewServer(
@@ -85,7 +88,10 @@ func (ts *ThriftServer) Start(ctx context.Context, host component.Host) error {
 		return fmt.Errorf("can't start thrift http server %s", err)
 	}
 
+	ts.shutdownWG.Add(1)
 	go func() {
+		defer ts.shutdownWG.Done()
+
 		if errHTTP := ts.server.Serve(ln); !errors.Is(errHTTP, http.ErrServerClosed) && errHTTP != nil {
 			componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(errHTTP))
 		}
@@ -104,6 +110,7 @@ func (ts *ThriftServer) Shutdown(ctx context.Context) {
 		if err != nil {
 			ts.telemetry.Logger.Error("failed to stop thrift server", zap.Error(err))
 		}
+		ts.shutdownWG.Wait()
 	}
 }
 
