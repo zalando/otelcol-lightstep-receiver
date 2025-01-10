@@ -25,3 +25,4 @@ ocb
 *.iml
 .idea/
 build/
+coverage/
