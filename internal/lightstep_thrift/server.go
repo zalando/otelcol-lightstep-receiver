@@ -8,6 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"sync"
+
 	"github.com/gorilla/mux"
 	lightstepConstants "github.com/lightstep/lightstep-tracer-go/constants"
 	"go.opentelemetry.io/collector/client"
@@ -18,10 +23,6 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
-	"io"
-	"net"
-	"net/http"
-	"sync"
 
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/thrift_0_9_2/lib/go/thrift"
 
@@ -240,13 +241,15 @@ func (ts *ThriftServer) HandleThriftJSONRequestV0(w http.ResponseWriter, rq *htt
 	//   service.name <- runtime.group_name
 	//   access token <- header Lightstep-Access-Token
 	accessToken = rq.Header.Get(headerLightstepAccessToken)
-	rr.Runtime.Attrs = append(
-		rr.Runtime.Attrs,
-		&collectorthrift.KeyValue{
-			Key:   lightstepConstants.ComponentNameKey,
-			Value: *rr.Runtime.GroupName,
-		},
-	)
+	if rr.Runtime != nil && rr.Runtime.GroupName != nil {
+		rr.Runtime.Attrs = append(
+			rr.Runtime.Attrs,
+			&collectorthrift.KeyValue{
+				Key:   lightstepConstants.ComponentNameKey,
+				Value: *rr.Runtime.GroupName,
+			},
+		)
+	}
 
 	resp, err := tsr.Report(
 		&collectorthrift.Auth{
