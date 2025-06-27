@@ -47,7 +47,9 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 
 	result := &lightstepCommon.ProjectTraces{}
 
-	if tr.auth != nil && tr.auth.AccessToken != nil {
+	if tr.auth == nil || tr.auth.AccessToken == nil {
+		span.SetStatus(codes.Error, lightstepCommon.ErrNoAccessToken.Error())
+	} else {
 		result.AccessToken = tr.auth.GetAccessToken()
 	}
 
@@ -57,11 +59,12 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 
 	tr.kvToAttr(tr.orig.Runtime.Attrs, &rAttr)
 	serviceName, ok := rAttr.Get(lightstepConstants.ComponentNameKey)
-	if !ok {
+	if ok {
+		result.ServiceName = serviceName.Str()
+		rAttr.PutStr("service.name", serviceName.Str())
+	} else {
 		span.SetStatus(codes.Error, lightstepCommon.ErrNoServiceName.Error())
 	}
-	result.ServiceName = serviceName.Str()
-	rAttr.PutStr("service.name", serviceName.Str())
 
 	if tr.orig.InternalMetrics != nil {
 		for _, m := range tr.orig.InternalMetrics.Counts {
