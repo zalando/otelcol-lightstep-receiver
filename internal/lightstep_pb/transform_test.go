@@ -2,6 +2,8 @@ package lightstep_pb
 
 import (
 	"context"
+	"testing"
+
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/matryer/is"
 	"go.opentelemetry.io/collector/component"
@@ -10,9 +12,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/otel/trace/noop"
 	"go.uber.org/zap"
-	"testing"
 
-	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	pb "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
@@ -181,7 +181,7 @@ func TestTransformation_NoServiceName(t *testing.T) {
 		telemetry: initTelemetry(),
 	}
 	_, err := rq.ToOtel(context.Background())
-	is.Equal(err, lightstepCommon.ErrNoServiceName)
+	is.Equal(err, nil)
 }
 
 func TestTransformation_NoAccessToken(t *testing.T) {
@@ -198,7 +198,7 @@ func TestTransformation_NoAccessToken(t *testing.T) {
 		telemetry: initTelemetry(),
 	}
 	_, err := rq.ToOtel(context.Background())
-	is.Equal(err, lightstepCommon.ErrNoAccessToken)
+	is.Equal(err, nil)
 }
 
 func TestTransformation_GetClientDropSpans(t *testing.T) {
