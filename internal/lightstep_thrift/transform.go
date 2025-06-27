@@ -3,13 +3,14 @@ package lightstep_thrift
 import (
 	"context"
 	"encoding/hex"
+	"strings"
+	"time"
+
 	lightstepConstants "github.com/lightstep/lightstep-tracer-go/constants"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
-	"strings"
-	"time"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
@@ -47,9 +48,10 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 	result := &lightstepCommon.ProjectTraces{}
 
 	if tr.auth == nil || tr.auth.AccessToken == nil {
-		return result, lightstepCommon.ErrNoAccessToken
+		span.SetStatus(codes.Error, lightstepCommon.ErrNoAccessToken.Error())
+	} else {
+		result.AccessToken = tr.auth.GetAccessToken()
 	}
-	result.AccessToken = tr.auth.GetAccessToken()
 
 	data := ptrace.NewTraces()
 	rs := data.ResourceSpans().AppendEmpty()
@@ -57,12 +59,12 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 
 	tr.kvToAttr(tr.orig.Runtime.Attrs, &rAttr)
 	serviceName, ok := rAttr.Get(lightstepConstants.ComponentNameKey)
-	result.ServiceName = serviceName.Str()
-	if !ok {
+	if ok {
+		result.ServiceName = serviceName.Str()
+		rAttr.PutStr("service.name", serviceName.Str())
+	} else {
 		span.SetStatus(codes.Error, lightstepCommon.ErrNoServiceName.Error())
-		return result, lightstepCommon.ErrNoServiceName
 	}
-	rAttr.PutStr("service.name", serviceName.Str())
 
 	if tr.orig.InternalMetrics != nil {
 		for _, m := range tr.orig.InternalMetrics.Counts {
@@ -92,9 +94,11 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 			attr.Remove("parent_span_guid")
 		}
 
-		if _, ok := attr.Get("error"); ok {
-			s.Status().SetCode(ptrace.StatusCodeError)
-			attr.Remove("error")
+		if value, ok := attr.Get("error"); ok {
+			if lightstepCommon.IsErrorAttributeValueActuallyError(value) {
+				s.Status().SetCode(ptrace.StatusCodeError)
+				attr.Remove("error")
+			}
 		}
 
 		for _, log := range span.LogRecords {

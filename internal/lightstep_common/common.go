@@ -2,6 +2,8 @@ package lightstep_common
 
 import (
 	"errors"
+
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
@@ -24,4 +26,15 @@ type ProjectTraces struct {
 
 type OtelTransformer interface {
 	ToOtel() (*ProjectTraces, error)
+}
+
+func IsErrorAttributeValueActuallyError(value pcommon.Value) bool {
+	switch value.Type() {
+	case pcommon.ValueTypeBool:
+		return value.Bool()
+	case pcommon.ValueTypeStr:
+		return value.AsString() == "true"
+	default:
+		return false
+	}
 }
