@@ -3,14 +3,15 @@ package lightstep_pb
 import (
 	"context"
 	"encoding/binary"
+	"strings"
+	"time"
+	"unicode/utf8"
+
 	lightstepConstants "github.com/lightstep/lightstep-tracer-go/constants"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/otel/codes"
 	"go.uber.org/zap"
-	"strings"
-	"time"
-	"unicode/utf8"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	pb "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb/collectorpb"
@@ -52,27 +53,25 @@ func (r *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, e
 
 	result := &lightstepCommon.ProjectTraces{}
 
-	if r.orig.Auth == nil || r.orig.Auth.AccessToken == "" {
-		span.SetStatus(codes.Error, lightstepCommon.ErrNoAccessToken.Error())
-		return result, lightstepCommon.ErrNoAccessToken
+	if r.orig.Auth != nil && r.orig.Auth.AccessToken != "" {
+		result.AccessToken = r.orig.Auth.AccessToken
 	}
-	result.AccessToken = r.orig.Auth.AccessToken
 
 	data := ptrace.NewTraces()
 	rs := data.ResourceSpans().AppendEmpty()
 	rAttr := rs.Resource().Attributes()
 
 	nonUtf8Keys, err := r.kvToAttr(r.orig.Reporter.Tags, &rAttr)
-	serviceName, ok := rAttr.Get(lightstepConstants.ComponentNameKey)
-	result.ServiceName = serviceName.Str()
-	if !ok {
-		return result, lightstepCommon.ErrNoServiceName
-	}
 	if err != nil {
 		span.SetStatus(codes.Error, "non-utf8-keys")
 		r.reportNonUtf8(result.ServiceName, nonUtf8Keys)
 	}
 
+	serviceName, ok := rAttr.Get(lightstepConstants.ComponentNameKey)
+	if !ok {
+		span.SetStatus(codes.Error, lightstepCommon.ErrNoServiceName.Error())
+	}
+	result.ServiceName = serviceName.Str()
 	rAttr.PutStr("service.name", serviceName.Str())
 
 	if r.orig.InternalMetrics != nil {
@@ -106,9 +105,11 @@ func (r *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, e
 			r.reportNonUtf8(result.ServiceName, nonUtf8Keys)
 		}
 
-		if _, ok := attr.Get("error"); ok {
-			s.Status().SetCode(ptrace.StatusCodeError)
-			attr.Remove("error")
+		if value, ok := attr.Get("error"); ok {
+			if lightstepCommon.IsErrorAttributeValueActuallyError(value) {
+				s.Status().SetCode(ptrace.StatusCodeError)
+				attr.Remove("error")
+			}
 		}
 
 		for _, log := range span.Logs {
