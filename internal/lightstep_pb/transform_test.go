@@ -161,6 +161,10 @@ func TestTransformation(t *testing.T) {
 	is.True(ok)
 	is.Equal(v.Double(), 55.01)
 
+	v, ok = span.Attributes().Get("span.custom_kind")
+	is.True(ok)
+	is.Equal(v.Str(), "client")
+
 	is.Equal(span.Events().Len(), 1)
 	is.Equal(span.Events().At(0).Name(), "event-name")
 	is.Equal(span.Events().At(0).Timestamp().AsTime().UnixNano(), int64(1718207928350615000))
