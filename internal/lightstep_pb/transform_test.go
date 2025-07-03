@@ -92,6 +92,10 @@ func TestTransformation(t *testing.T) {
 							Key:   "error",
 							Value: &pb.KeyValue_BoolValue{BoolValue: true},
 						},
+						{
+							Key:   "span.kind",
+							Value: &pb.KeyValue_StringValue{StringValue: []byte("client")},
+						},
 					},
 					Logs: []*pb.Log{
 						{
@@ -130,6 +134,7 @@ func TestTransformation(t *testing.T) {
 	is.Equal(span.ParentSpanID().String(), "24be8e394663fb1e")
 	is.Equal(span.StartTimestamp().AsTime().UnixNano(), int64(1718207928350615000))
 	is.Equal(span.EndTimestamp().AsTime().UnixNano(), int64(1718207928350715000))
+	is.Equal(span.Kind(), ptrace.SpanKindClient)
 
 	var (
 		ok bool
