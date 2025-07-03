@@ -2,6 +2,7 @@ package lightstep_common
 
 import (
 	"errors"
+	"strings"
 
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -36,5 +37,23 @@ func IsErrorAttributeValueActuallyError(value pcommon.Value) bool {
 		return value.AsString() == "true"
 	default:
 		return false
+	}
+}
+
+func ParseSpanKindAttributeValue(value pcommon.Value) (ptrace.SpanKind, string) {
+	stringValue := value.AsString()
+	switch strings.ToLower(stringValue) {
+	case "internal":
+		return ptrace.SpanKindInternal, stringValue
+	case "server":
+		return ptrace.SpanKindServer, stringValue
+	case "client":
+		return ptrace.SpanKindClient, stringValue
+	case "producer":
+		return ptrace.SpanKindProducer, stringValue
+	case "consumer":
+		return ptrace.SpanKindConsumer, stringValue
+	default:
+		return ptrace.SpanKindUnspecified, stringValue
 	}
 }

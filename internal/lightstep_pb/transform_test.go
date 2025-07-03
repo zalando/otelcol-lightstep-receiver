@@ -92,6 +92,10 @@ func TestTransformation(t *testing.T) {
 							Key:   "error",
 							Value: &pb.KeyValue_BoolValue{BoolValue: true},
 						},
+						{
+							Key:   "span.kind",
+							Value: &pb.KeyValue_StringValue{StringValue: []byte("client")},
+						},
 					},
 					Logs: []*pb.Log{
 						{
@@ -130,6 +134,7 @@ func TestTransformation(t *testing.T) {
 	is.Equal(span.ParentSpanID().String(), "24be8e394663fb1e")
 	is.Equal(span.StartTimestamp().AsTime().UnixNano(), int64(1718207928350615000))
 	is.Equal(span.EndTimestamp().AsTime().UnixNano(), int64(1718207928350715000))
+	is.Equal(span.Kind(), ptrace.SpanKindClient)
 
 	var (
 		ok bool
@@ -155,6 +160,10 @@ func TestTransformation(t *testing.T) {
 	v, ok = span.Attributes().Get("tag-double")
 	is.True(ok)
 	is.Equal(v.Double(), 55.01)
+
+	v, ok = span.Attributes().Get("span.custom_kind")
+	is.True(ok)
+	is.Equal(v.Str(), "client")
 
 	is.Equal(span.Events().Len(), 1)
 	is.Equal(span.Events().At(0).Name(), "event-name")
