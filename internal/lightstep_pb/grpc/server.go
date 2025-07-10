@@ -113,5 +113,5 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	err = s.nextTraces.ConsumeTraces(ctx, projectTraces.Traces)
 	s.obsreport.EndTracesOp(ctx, "protobuf-grpc", spanCount, err)
 
-	return nil, err
+	return &pb.ReportResponse{Errors: nil}, err
 }
