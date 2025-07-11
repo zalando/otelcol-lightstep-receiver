@@ -123,6 +123,6 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	}
 
 	return &pb.ReportResponse{
-		Errors: []string{},
+		Errors: nil,
 	}, nil
 }
