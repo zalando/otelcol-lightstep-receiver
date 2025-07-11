@@ -3,9 +3,11 @@ package grpc
 import (
 	"context"
 	"errors"
+	"net"
+	"sync"
+
 	"go.opentelemetry.io/collector/component/componentstatus"
 	"go.opentelemetry.io/collector/config/configgrpc"
-	"sync"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
@@ -19,7 +21,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"net"
 )
 
 const transport = "pbgrpc"
@@ -99,7 +100,9 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	lr := lightstep_pb.NewLightstepRequest(rq, s.telemetry, transport)
 	if projectTraces, err = lr.ToOtel(ctx); err != nil {
 		s.telemetry.IncrementFailed(transport, 1)
-		return nil, err
+		return &pb.ReportResponse{
+			Errors: []string{err.Error()},
+		}, err
 	}
 	s.telemetry.IncrementProcessed(transport, 1)
 	s.telemetry.IncrementClientDropSpans(projectTraces.ServiceName, projectTraces.ClientSpansDropped)
@@ -113,5 +116,13 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	err = s.nextTraces.ConsumeTraces(ctx, projectTraces.Traces)
 	s.obsreport.EndTracesOp(ctx, "protobuf-grpc", spanCount, err)
 
-	return nil, err
+	if err != nil {
+		return &pb.ReportResponse{
+			Errors: []string{err.Error()},
+		}, err
+	}
+
+	return &pb.ReportResponse{
+		Errors: nil,
+	}, nil
 }
