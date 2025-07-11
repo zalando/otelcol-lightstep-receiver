@@ -103,8 +103,10 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 
 		if spanKind, ok := attr.Get("span.kind"); ok {
 			otelSpanKind, stringSpanKind := lightstepCommon.ParseSpanKindAttributeValue(spanKind)
-			attr.PutStr("span.custom_kind", stringSpanKind)
 			s.SetKind(otelSpanKind)
+			if otelSpanKind == ptrace.SpanKindUnspecified {
+				attr.PutStr("span.custom_kind", stringSpanKind)
+			}
 		}
 
 		for _, log := range span.LogRecords {
