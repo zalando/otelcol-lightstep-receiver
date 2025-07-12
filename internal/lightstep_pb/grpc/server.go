@@ -95,7 +95,7 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 		spanCount     int
 	)
 	ctx = client.NewContext(ctx, client.Info{})
-	receivedAt := time.Now()
+	receiveTimestamp := time.Now()
 	ctx = s.obsreport.StartTracesOp(ctx)
 	spanCount = len(rq.Spans)
 	s.logger.Debug("report", zap.Any("incoming", rq))
@@ -104,7 +104,7 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 		s.telemetry.IncrementFailed(transport, 1)
 		return &pb.ReportResponse{
 			Errors:            []string{err.Error()},
-			ReceiveTimestamp:  timestamppb.New(receivedAt),
+			ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
 			TransmitTimestamp: timestamppb.Now(),
 		}, err
 	}
@@ -123,14 +123,14 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	if err != nil {
 		return &pb.ReportResponse{
 			Errors:            []string{err.Error()},
-			ReceiveTimestamp:  timestamppb.New(receivedAt),
+			ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
 			TransmitTimestamp: timestamppb.Now(),
 		}, err
 	}
 
 	return &pb.ReportResponse{
 		Errors:            nil,
-		ReceiveTimestamp:  timestamppb.New(receivedAt),
+		ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
 		TransmitTimestamp: timestamppb.Now(),
 	}, nil
 }
