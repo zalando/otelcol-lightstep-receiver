@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	lightstepConstants "github.com/lightstep/lightstep-tracer-go/constants"
@@ -157,10 +158,11 @@ func (ts *ThriftServer) HandleThriftBinaryRequest(w http.ResponseWriter, rq *htt
 	oprot := thrift.NewTBinaryProtocolTransport(transp)
 
 	tsr := &ThriftServerReportRequest{
-		context:    ctx,
-		obsreport:  ts.obsreport,
-		nextTraces: ts.nextTraces,
-		telemetry:  ts.telemetry,
+		context:          ctx,
+		obsreport:        ts.obsreport,
+		nextTraces:       ts.nextTraces,
+		telemetry:        ts.telemetry,
+		receiveTimestamp: time.Now().UnixMicro(),
 	}
 
 	if err != nil {
@@ -198,10 +200,11 @@ func (ts *ThriftServer) HandleThriftJSONRequestV0(w http.ResponseWriter, rq *htt
 	})
 
 	tsr := &ThriftServerReportRequest{
-		context:    ctx,
-		obsreport:  ts.obsreport,
-		nextTraces: ts.nextTraces,
-		telemetry:  ts.telemetry,
+		context:          ctx,
+		obsreport:        ts.obsreport,
+		nextTraces:       ts.nextTraces,
+		telemetry:        ts.telemetry,
+		receiveTimestamp: time.Now().UnixMicro(),
 	}
 
 	switch rq.Header.Get("Content-Encoding") {
