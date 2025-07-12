@@ -3,8 +3,10 @@ package grpc
 import (
 	"context"
 	"errors"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"net"
 	"sync"
+	"time"
 
 	"go.opentelemetry.io/collector/component/componentstatus"
 	"go.opentelemetry.io/collector/config/configgrpc"
@@ -93,7 +95,7 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 		spanCount     int
 	)
 	ctx = client.NewContext(ctx, client.Info{})
-
+	receiveTimestamp := time.Now()
 	ctx = s.obsreport.StartTracesOp(ctx)
 	spanCount = len(rq.Spans)
 	s.logger.Debug("report", zap.Any("incoming", rq))
@@ -101,7 +103,9 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 	if projectTraces, err = lr.ToOtel(ctx); err != nil {
 		s.telemetry.IncrementFailed(transport, 1)
 		return &pb.ReportResponse{
-			Errors: []string{err.Error()},
+			Errors:            []string{err.Error()},
+			ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
+			TransmitTimestamp: timestamppb.Now(),
 		}, err
 	}
 	s.telemetry.IncrementProcessed(transport, 1)
@@ -118,11 +122,15 @@ func (s *ServerGRPC) Report(ctx context.Context, rq *pb.ReportRequest) (*pb.Repo
 
 	if err != nil {
 		return &pb.ReportResponse{
-			Errors: []string{err.Error()},
+			Errors:            []string{err.Error()},
+			ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
+			TransmitTimestamp: timestamppb.Now(),
 		}, err
 	}
 
 	return &pb.ReportResponse{
-		Errors: nil,
+		Errors:            nil,
+		ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
+		TransmitTimestamp: timestamppb.Now(),
 	}, nil
 }

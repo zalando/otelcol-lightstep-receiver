@@ -14,10 +14,11 @@ import (
 
 // ThriftServerReportRequest defines thrift report request with http context
 type ThriftServerReportRequest struct {
-	context    context.Context
-	obsreport  *receiverhelper.ObsReport
-	nextTraces consumer.Traces
-	telemetry  *telemetry.Telemetry
+	receiveTimestamp int64
+	context          context.Context
+	obsreport        *receiverhelper.ObsReport
+	nextTraces       consumer.Traces
+	telemetry        *telemetry.Telemetry
 }
 
 func (tsr *ThriftServerReportRequest) getFormatFromContext() string {
@@ -66,7 +67,7 @@ func (tsr *ThriftServerReportRequest) newReportResponse(err error) *collectorthr
 	res := &collectorthrift.ReportResponse{
 		Commands: nil,
 		Timing: &collectorthrift.Timing{
-			ReceiveMicros:  &now,
+			ReceiveMicros:  &tsr.receiveTimestamp,
 			TransmitMicros: &now,
 		},
 	}
