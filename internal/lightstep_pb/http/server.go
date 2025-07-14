@@ -14,10 +14,12 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
@@ -104,9 +106,11 @@ func (s *ServerHTTP) Shutdown(ctx context.Context) {
 	}
 }
 
-func (s *ServerHTTP) writeResponse(w http.ResponseWriter, err error) {
+func (s *ServerHTTP) writeResponse(w http.ResponseWriter, receiveTimestamp time.Time, err error) {
 	resp := collectorpb.ReportResponse{
-		Errors: nil,
+		Errors:            nil,
+		ReceiveTimestamp:  timestamppb.New(receiveTimestamp),
+		TransmitTimestamp: timestamppb.Now(),
 	}
 
 	switch err != nil {
@@ -130,13 +134,13 @@ func (s *ServerHTTP) HandleRequest(w http.ResponseWriter, rq *http.Request) {
 		spanCount     int
 	)
 	ctx := client.NewContext(rq.Context(), client.Info{})
-
+	receiveTimestamp := time.Now()
 	ctx = s.obsreport.StartTracesOp(ctx)
 
 	bodyBytes, err := io.ReadAll(rq.Body)
 	s.telemetry.Logger.Debug("pb http message received", zap.Int("len", len(bodyBytes)))
 	if err != nil {
-		s.writeResponse(w, err)
+		s.writeResponse(w, receiveTimestamp, err)
 		return
 	}
 
@@ -144,7 +148,7 @@ func (s *ServerHTTP) HandleRequest(w http.ResponseWriter, rq *http.Request) {
 	err = proto.Unmarshal(bodyBytes, msg)
 	if err != nil {
 		s.telemetry.Logger.Debug("can't unmarshal pb http message", zap.Error(err))
-		s.writeResponse(w, err)
+		s.writeResponse(w, receiveTimestamp, err)
 		return
 	}
 
@@ -153,7 +157,7 @@ func (s *ServerHTTP) HandleRequest(w http.ResponseWriter, rq *http.Request) {
 	lr := lightstep_pb.NewLightstepRequest(msg, s.telemetry, transport)
 	if projectTraces, err = lr.ToOtel(ctx); err != nil {
 		s.telemetry.IncrementFailed(transport, 1)
-		s.writeResponse(w, err)
+		s.writeResponse(w, receiveTimestamp, err)
 		return
 	}
 
@@ -165,6 +169,6 @@ func (s *ServerHTTP) HandleRequest(w http.ResponseWriter, rq *http.Request) {
 	ctx = client.NewContext(ctx, clientInfo)
 
 	err = s.nextTraces.ConsumeTraces(ctx, projectTraces.Traces)
-	s.writeResponse(w, err)
+	s.writeResponse(w, receiveTimestamp, err)
 	s.obsreport.EndTracesOp(ctx, "protobuf-http", spanCount, err)
 }
