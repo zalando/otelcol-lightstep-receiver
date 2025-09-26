@@ -8,25 +8,23 @@ dist:
 receivers:
   - gomod: github.com/zalando/otelcol-lightstep-receiver v1.0.0
     name: lightstepreceiver
-  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.113.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.136.0
 
 processors:
-  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.113.0
-  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.113.0
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.136.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.136.0
 
 exporters:
-  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/otelarrowexporter v0.113.0
-  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.113.0
-  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.113.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/otelarrowexporter v0.136.0
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.136.0
+  - gomod: go.opentelemetry.io/collector/exporter/otlpexporter v0.136.0
 
 providers:
   - gomod: go.opentelemetry.io/collector/confmap/provider/envprovider v1.19.0
   - gomod: go.opentelemetry.io/collector/confmap/provider/fileprovider v1.19.0
 
 extensions:
-  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.113.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.136.0
 
 replaces:
   - github.com/zalando/otelcol-lightstep-receiver => ../../../otelcol-lightstep-receiver
-  - go.opentelemetry.io/collector/pdata => go.opentelemetry.io/collector/pdata v1.20.0
-  - go.opentelemetry.io/collector/component => go.opentelemetry.io/collector/component v0.113.0

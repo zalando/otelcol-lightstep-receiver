@@ -50,7 +50,7 @@ service:
             exporter:
               otlp:
                 endpoint: ingest.lightstep.com:443
-                protocol: grpc/protobuf
+                protocol: grpc
                 compression: gzip
                 headers:
                   "lightstep-access-token": "${env:LIGHTSTEP_ACCESS_TOKEN}"
