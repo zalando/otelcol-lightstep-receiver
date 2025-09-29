@@ -8,7 +8,7 @@ import (
 
 var (
 	Type      = component.MustNewType("lightstepreceiver")
-	ScopeName = "github.bus.zalan.do/logging/otelcol-lightstep-receiver"
+	ScopeName = "github.com/zalando/otelcol-lightstep-receiver"
 )
 
 const (

@@ -40,7 +40,12 @@ service:
       service.name: "tracing/otelcol-staging"
     metrics:
       level: detailed
-      address: 0.0.0.0:8888
+      readers:
+      - pull:
+          exporter:
+            prometheus:
+              host: 0.0.0.0
+              port: 8888
     traces:
       propagators:
         - tracecontext
@@ -50,7 +55,7 @@ service:
             exporter:
               otlp:
                 endpoint: ingest.lightstep.com:443
-                protocol: grpc/protobuf
+                protocol: grpc
                 compression: gzip
                 headers:
                   "lightstep-access-token": "${env:LIGHTSTEP_ACCESS_TOKEN}"
