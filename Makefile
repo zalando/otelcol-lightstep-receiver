@@ -2,7 +2,7 @@ ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/sh
 
 SOURCES = $(shell find $(ROOT_DIR) -name "*.go" -print | grep -v /thrift_0_9_2/ )
-SOURCE_DIRS = $(shell find $(ROOT_DIR) -d -print | grep -v /thrift_0_9_2/ | grep -v . )
+SOURCE_DIRS = $(shell find $(ROOT_DIR) -depth -print | grep -v /thrift_0_9_2/ | grep -v . )
 TESTS   = $(shell go list ./... | grep -v e2e | grep -v "thrift_0_9_2")
 COVERAGE_DIR ?= $(PWD)/coverage
 

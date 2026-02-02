@@ -3,10 +3,11 @@ package grpc
 import (
 	"context"
 	"errors"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"net"
 	"sync"
 	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"go.opentelemetry.io/collector/component/componentstatus"
 	"go.opentelemetry.io/collector/config/configgrpc"
@@ -62,7 +63,7 @@ func (s *ServerGRPC) Start(host component.Host) error {
 		return err
 	}
 
-	if s.Server, err = s.config.ToServer(context.Background(), host, s.settings.TelemetrySettings); err != nil {
+	if s.Server, err = s.config.ToServer(context.Background(), host.GetExtensions(), s.settings.TelemetrySettings); err != nil {
 		return err
 	}
 	pb.RegisterCollectorServiceServer(s.Server, s)
