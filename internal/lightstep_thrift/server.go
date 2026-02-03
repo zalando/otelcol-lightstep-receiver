@@ -85,7 +85,7 @@ func (ts *ThriftServer) Start(ctx context.Context, host component.Host) error {
 	rt.HandleFunc("/_rpc/v1/reports/binary", ts.HandleThriftBinaryRequest).Methods(http.MethodPost)
 	rt.HandleFunc("/api/v0/reports", ts.HandleThriftJSONRequestV0).Methods(http.MethodPost)
 
-	ts.server, err = ts.config.ToServer(ctx, host, ts.settings.TelemetrySettings, rt)
+	ts.server, err = ts.config.ToServer(ctx, host.GetExtensions(), ts.settings.TelemetrySettings, rt)
 	if err != nil {
 		return fmt.Errorf("can't start thrift http server %s", err)
 	}

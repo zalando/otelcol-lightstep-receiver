@@ -4,6 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"sync"
+	"time"
+
 	"github.com/golang/protobuf/proto" //nolint:staticcheck
 	"github.com/gorilla/mux"
 	"go.opentelemetry.io/collector/client"
@@ -15,11 +21,6 @@ import (
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"io"
-	"net"
-	"net/http"
-	"sync"
-	"time"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_pb"
@@ -75,7 +76,7 @@ func (s *ServerHTTP) Start(ctx context.Context, host component.Host) error {
 	rt := mux.NewRouter()
 	rt.HandleFunc("/api/v2/reports", s.HandleRequest).Methods(http.MethodPost)
 
-	s.server, err = s.config.ToServer(ctx, host, s.settings.TelemetrySettings, rt)
+	s.server, err = s.config.ToServer(ctx, host.GetExtensions(), s.settings.TelemetrySettings, rt)
 	if err != nil {
 		return fmt.Errorf("can't start http pb server %s", err)
 	}
