@@ -3,6 +3,7 @@ package lightstepreceiver
 import (
 	"context"
 	"fmt"
+
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -40,10 +41,16 @@ func createDefaultConfig() component.Config {
 				ReadBufferSize: 512 * 1024,
 			},
 			PbHTTP: &confighttp.ServerConfig{
-				Endpoint: fmt.Sprintf("0.0.0.0:%d", pbHTTPPort),
+				NetAddr: confignet.AddrConfig{
+					Endpoint:  fmt.Sprintf("0.0.0.0:%d", pbHTTPPort),
+					Transport: confignet.TransportTypeTCP,
+				},
 			},
 			Thrift: &confighttp.ServerConfig{
-				Endpoint: fmt.Sprintf("0.0.0.0:%d", thriftPort),
+				NetAddr: confignet.AddrConfig{
+					Endpoint:  fmt.Sprintf("0.0.0.0:%d", thriftPort),
+					Transport: confignet.TransportTypeTCP,
+				},
 			},
 		},
 	}
