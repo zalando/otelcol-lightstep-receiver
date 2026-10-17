@@ -63,7 +63,7 @@ func (r *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, e
 	rs := data.ResourceSpans().AppendEmpty()
 	rAttr := rs.Resource().Attributes()
 
-	nonUtf8Keys, err := r.kvToAttr(r.orig.Reporter.Tags, &rAttr)
+	nonUtf8Keys, err := r.kvToAttr(r.orig.GetReporter().GetTags(), &rAttr)
 	if err != nil {
 		span.SetStatus(codes.Error, "non-utf8-keys")
 		r.reportNonUtf8(result.ServiceName, nonUtf8Keys)
@@ -89,12 +89,12 @@ func (r *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, e
 	ss := rs.ScopeSpans().AppendEmpty()
 	for _, span := range r.orig.Spans {
 		s := ss.Spans().AppendEmpty()
-		s.SetSpanID(convertSpanID(span.GetSpanContext().SpanId))
-		s.SetTraceID(convertTraceID(span.GetSpanContext().TraceId))
+		s.SetSpanID(convertSpanID(span.GetSpanContext().GetSpanId()))
+		s.SetTraceID(convertTraceID(span.GetSpanContext().GetTraceId()))
 		s.SetName(span.GetOperationName())
 
 		if len(span.References) == 1 {
-			s.SetParentSpanID(convertSpanID(span.References[0].SpanContext.SpanId))
+			s.SetParentSpanID(convertSpanID(span.References[0].GetSpanContext().GetSpanId()))
 		}
 
 		startTimestamp := span.StartTimestamp.AsTime()

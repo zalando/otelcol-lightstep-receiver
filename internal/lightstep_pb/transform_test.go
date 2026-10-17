@@ -4,8 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/matryer/is"
+	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -283,4 +285,119 @@ func TestInvalidUTF8(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(rq.telemetry.NonUTF8Attributes[rq.transport], int64(1))
 	is.Equal(res.ResourceSpans().At(0).Resource().Attributes().Len(), 2)
+}
+
+func TestTransformationMissingMessages(t *testing.T) {
+	tests := []struct {
+		name        string
+		modify      func(*pb.ReportRequest)
+		serviceName string
+		spanID      string
+		traceID     string
+		parentID    string
+	}{
+		{
+			name: "missing reporter",
+			modify: func(r *pb.ReportRequest) {
+				r.Reporter = nil
+			},
+			spanID:   "0000000000000002",
+			traceID:  "00000000000000000000000000000001",
+			parentID: "0000000000000003",
+		},
+		{
+			name: "missing span context",
+			modify: func(r *pb.ReportRequest) {
+				r.Spans[0].SpanContext = nil
+			},
+			serviceName: "test-service",
+			parentID:    "0000000000000003",
+		},
+		{
+			name: "missing parent context",
+			modify: func(r *pb.ReportRequest) {
+				r.Spans[0].References[0].SpanContext = nil
+			},
+			serviceName: "test-service",
+			spanID:      "0000000000000002",
+			traceID:     "00000000000000000000000000000001",
+		},
+		{
+			name: "empty reporter",
+			modify: func(r *pb.ReportRequest) {
+				r.Reporter = &pb.Reporter{}
+			},
+			spanID:   "0000000000000002",
+			traceID:  "00000000000000000000000000000001",
+			parentID: "0000000000000003",
+		},
+		{
+			name: "empty span context",
+			modify: func(r *pb.ReportRequest) {
+				r.Spans[0].SpanContext = &pb.SpanContext{}
+			},
+			serviceName: "test-service",
+			parentID:    "0000000000000003",
+		},
+		{
+			name: "empty parent context",
+			modify: func(r *pb.ReportRequest) {
+				r.Spans[0].References[0].SpanContext = &pb.SpanContext{}
+			},
+			serviceName: "test-service",
+			spanID:      "0000000000000002",
+			traceID:     "00000000000000000000000000000001",
+		},
+		{
+			name: "empty report",
+			modify: func(r *pb.ReportRequest) {
+				*r = pb.ReportRequest{}
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			orig := &pb.ReportRequest{
+				Auth: &pb.Auth{AccessToken: "access-token"},
+				Reporter: &pb.Reporter{Tags: []*pb.KeyValue{
+					{Key: "lightstep.component_name", Value: &pb.KeyValue_StringValue{StringValue: []byte("test-service")}},
+				}},
+				Spans: []*pb.Span{{
+					SpanContext:    &pb.SpanContext{TraceId: 1, SpanId: 2},
+					OperationName:  "test-operation",
+					References:     []*pb.Reference{{SpanContext: &pb.SpanContext{SpanId: 3}}},
+					StartTimestamp: &timestamp.Timestamp{Seconds: 1718207928},
+					DurationMicros: 100,
+				}},
+			}
+			tt.modify(orig)
+
+			// Exercise the missing messages as decoded from a protobuf payload.
+			payload, err := proto.Marshal(orig)
+			require.NoError(t, err)
+			decoded := &pb.ReportRequest{}
+			require.NoError(t, proto.Unmarshal(payload, decoded))
+
+			rq := NewLightstepRequest(decoded, initTelemetry(), "protobuf-http")
+			require.NotPanics(t, func() {
+				result, err := rq.ToOtel(context.Background())
+				require.NoError(t, err)
+				require.Equal(t, decoded.GetAuth().GetAccessToken(), result.AccessToken)
+				require.Equal(t, tt.serviceName, result.ServiceName)
+				require.Equal(t, len(decoded.Spans), result.SpanCount())
+				if len(decoded.Spans) == 0 {
+					return
+				}
+
+				span := result.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0)
+				require.Equal(t, tt.spanID, span.SpanID().String())
+				require.Equal(t, tt.traceID, span.TraceID().String())
+				require.Equal(t, tt.parentID, span.ParentSpanID().String())
+				require.Equal(t, "test-operation", span.Name())
+				require.Equal(t, int64(1718207928000000000), span.StartTimestamp().AsTime().UnixNano())
+				require.Equal(t, int64(1718207928000100000), span.EndTimestamp().AsTime().UnixNano())
+			})
+		})
+	}
 }
