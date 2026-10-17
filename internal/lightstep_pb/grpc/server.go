@@ -76,6 +76,9 @@ func (s *ServerGRPC) Start(host component.Host) error {
 			componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(errGrpc))
 		}
 	}()
+	s.telemetry.Logger.Info("started protobuf grpc listener",
+		zap.String("address", listener.Addr().String()),
+	)
 	return nil
 }
 
