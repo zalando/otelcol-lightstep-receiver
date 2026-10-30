@@ -17,6 +17,13 @@ The `lightstepreceiver` receives OpenTracing traces from Lightstep tracers in va
 ### Access token processing
 Lightstep access token is extracted from the payload and propagated further by context item `lightstep-access-token`, for further using by a `headersetter` extension 
 
+The protobuf HTTP endpoint returns `401` when a downstream consumer returns a
+gRPC `Unauthenticated` status. Other report errors still return `400`, and
+successful reports return `200`. All responses keep the protobuf `ReportResponse`
+body. A `401` includes `WWW-Authenticate: Lightstep realm="collector"`.
+Clients must still put their access token in the report. This receiver does not
+add token validation or change the report authentication format.
+
 ### Tracer metrics processing
 Lighstep tracer reports various client side metrics as `client-drop-spans` via traces payload, these metrics are extracted and reported by collector standard metrics reporting pipeline and available for scraping as `lightstep_receiver_client_spans_dropped`
 

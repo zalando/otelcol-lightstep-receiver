@@ -20,6 +20,8 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	lightstepCommon "github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_common"
@@ -114,16 +116,19 @@ func (s *ServerHTTP) writeResponse(w http.ResponseWriter, receiveTimestamp time.
 		TransmitTimestamp: timestamppb.Now(),
 	}
 
-	switch err != nil {
-	case true:
-		w.WriteHeader(http.StatusBadRequest)
+	statusCode := http.StatusOK
+	if err != nil {
+		statusCode = http.StatusBadRequest
 		resp.Errors = []string{err.Error()}
-	default:
-		w.WriteHeader(http.StatusOK)
+		if status.Code(err) == codes.Unauthenticated {
+			statusCode = http.StatusUnauthorized
+			w.Header().Set("WWW-Authenticate", `Lightstep realm="collector"`)
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/octet-stream")
 	encoded, _ := proto.Marshal(&resp)
+	w.WriteHeader(statusCode)
 	_, _ = w.Write(encoded)
 }
 
