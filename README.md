@@ -17,6 +17,11 @@ The `lightstepreceiver` receives OpenTracing traces from Lightstep tracers in va
 ### Access token processing
 Lightstep access token is extracted from the payload and propagated further by context item `lightstep-access-token`, for further using by a `headersetter` extension 
 
+The Thrift endpoints (`/api/v0/reports` and `/_rpc/v1/reports/binary`) return
+`400` for a report that has no `runtime`, a null entry in a list used by
+conversion, or a span without `oldest_micros` or `youngest_micros`. The response
+errors name the missing field. These reports are not sent to the next consumer.
+
 ### Tracer metrics processing
 Lighstep tracer reports various client side metrics as `client-drop-spans` via traces payload, these metrics are extracted and reported by collector standard metrics reporting pipeline and available for scraping as `lightstep_receiver_client_spans_dropped`
 

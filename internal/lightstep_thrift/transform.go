@@ -3,6 +3,8 @@ package lightstep_thrift
 import (
 	"context"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -16,6 +18,9 @@ import (
 	"github.com/zalando/otelcol-lightstep-receiver/internal/lightstep_thrift/collectorthrift"
 	"github.com/zalando/otelcol-lightstep-receiver/internal/telemetry"
 )
+
+// ErrInvalidReport happens when a thrift report misses a structure or timestamp that the conversion needs
+var ErrInvalidReport = errors.New("invalid thrift report")
 
 type Request struct {
 	auth      *collectorthrift.Auth
@@ -44,6 +49,11 @@ func (tr *Request) kvToAttr(kv []*collectorthrift.KeyValue, p *pcommon.Map) {
 func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, error) {
 	_, span := tr.telemetry.Tracer.Start(ctx, "to-otel")
 	defer span.End()
+
+	if err := validateReport(tr.orig); err != nil {
+		span.SetStatus(codes.Error, err.Error())
+		return nil, err
+	}
 
 	result := &lightstepCommon.ProjectTraces{}
 
@@ -125,6 +135,68 @@ func (tr *Request) ToOtel(ctx context.Context) (*lightstepCommon.ProjectTraces, 
 
 	result.Traces = data
 	return result, nil
+}
+
+// validateReport rejects reports with nil structures that ToOtel would dereference.
+// Thrift JSON can send null list entries and omit optional fields, so these reports
+// get HTTP 400 instead of a handler panic. A missing span timestamp is rejected, not
+// set to the Unix epoch.
+func validateReport(rq *collectorthrift.ReportRequest) error {
+	if rq == nil {
+		return fmt.Errorf("%w: missing report", ErrInvalidReport)
+	}
+	if rq.Runtime == nil {
+		return fmt.Errorf("%w: missing runtime", ErrInvalidReport)
+	}
+	if err := validateKeyValues(rq.Runtime.Attrs, "runtime.attrs"); err != nil {
+		return err
+	}
+	if rq.InternalMetrics != nil {
+		for i, m := range rq.InternalMetrics.Counts {
+			if m == nil {
+				return fmt.Errorf("%w: internal_metrics.counts[%d] is null", ErrInvalidReport, i)
+			}
+		}
+	}
+	for i, s := range rq.SpanRecords {
+		if s == nil {
+			return fmt.Errorf("%w: span_records[%d] is null", ErrInvalidReport, i)
+		}
+		if s.OldestMicros == nil {
+			return fmt.Errorf("%w: span_records[%d].oldest_micros is missing", ErrInvalidReport, i)
+		}
+		if s.YoungestMicros == nil {
+			return fmt.Errorf("%w: span_records[%d].youngest_micros is missing", ErrInvalidReport, i)
+		}
+		for j, attr := range s.Attributes {
+			if attr == nil {
+				return fmt.Errorf("%w: span_records[%d].attributes[%d] is null", ErrInvalidReport, i, j)
+			}
+		}
+		for j, l := range s.LogRecords {
+			if l == nil {
+				return fmt.Errorf("%w: span_records[%d].log_records[%d] is null", ErrInvalidReport, i, j)
+			}
+			if l.TimestampMicros == nil {
+				return fmt.Errorf("%w: span_records[%d].log_records[%d].timestamp_micros is missing", ErrInvalidReport, i, j)
+			}
+			for k, field := range l.Fields {
+				if field == nil {
+					return fmt.Errorf("%w: span_records[%d].log_records[%d].fields[%d] is null", ErrInvalidReport, i, j, k)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func validateKeyValues(kv []*collectorthrift.KeyValue, path string) error {
+	for i, t := range kv {
+		if t == nil {
+			return fmt.Errorf("%w: %s[%d] is null", ErrInvalidReport, path, i)
+		}
+	}
+	return nil
 }
 
 func (tr *Request) convertTimestamp(v *int64) pcommon.Timestamp {
